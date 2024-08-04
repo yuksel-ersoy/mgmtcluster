@@ -1,0 +1,294 @@
+#file name depends   clusterGroupName in values-global.yaml --  namespaces > subscriptions > applications >
+
+clusterGroup:
+  name: hub
+  isHubCluster: true
+
+  namespaces:
+    - open-cluster-management: #for ACM
+        operatorGroup: true
+    - openshift-nmstate: #for NMstate
+        operatorGroup: true
+    - openshift-local-storage: #for LSO
+        operatorGroup: true
+    - openshift-storage: #for ODF
+        operatorGroup: true
+    - openshift-cnv: #for CNF
+        operatorGroup: true
+    - quay-enterprise: #for quay
+        operatorGroup: true
+    #- policies
+    - kafka-cluster: #for Kafka
+        operatorGroup: true
+    - openshift-logging:
+        labels:
+          openshift.io/cluster-monitoring: "true"
+          argocd.argoproj.io/managed-by: "mgmt-gitops-hub"
+        operatorGroup: true
+        targetNamespaces:
+    - openshift-operators-redhat:
+        operatorGroup: true
+    # STF Namespaces
+    - cert-manager-operator:
+        operatorGroup: true
+    # End of STF related namespaces
+    - prom-kafka-adapter: #for prometheus adapter
+        operatorGroup: true
+    - mgmt-apps: #for applications
+        operatorGroup: true
+    - ansible: #for ansible
+        operatorGroup: true
+    - rhacs-operator: #ACS
+        operatorGroup: true
+        targetNamespaces:
+    - stackrox: #ACS_Central
+        operatorGroup: true
+    - openshift-update-service:
+        operatorGroup: true
+
+  subscriptions:
+    acm:
+      name: advanced-cluster-management
+      namespace: open-cluster-management
+      channel: release-2.10
+
+    nmstate:
+      name: kubernetes-nmstate-operator
+      namespace: openshift-nmstate
+      channel: stable
+      csv: kubernetes-nmstate-operator.4.14.0-202402091039
+
+    lso:
+      name: local-storage-operator
+      namespace: openshift-local-storage
+      channel: stable
+      csv: local-storage-operator.v4.14.0-202403261739
+
+    odf:
+      name: odf-operator
+      namespace: openshift-storage
+      channel: stable-4.14
+      csv: odf-operator.v4.14.6-rhodf
+
+    cnv:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+      channel: stable
+      csv: kubevirt-hyperconverged-operator.v4.14.4
+
+    quay:
+      name: quay-operator
+      namespace: quay-enterprise
+      channel: stable-3.11
+      csv:
+        quay-operator.v3.11.0
+
+        #
+        # STF Operator
+        #
+    cluster-observability-operator:
+      name: cluster-observability-operator
+      namespace: openshift-operators
+      channel: development
+
+    openshift-cert-manager:
+      name: openshift-cert-manager-operator
+      namespace: cert-manager-operator
+      channel: stable-v1
+
+        #
+        # End STF operators
+        #
+    kafka:
+      name: amq-streams
+      namespace: kafka-cluster
+      channel: stable
+      csv: amqstreams.v2.6.0-1
+
+    logging:
+      namespace: openshift-logging
+      name: cluster-logging
+      channel: stable-5.9
+      source: redhat-operators
+      csv: cluster-logging.v5.9.0
+
+    talm:
+      name: topology-aware-lifecycle-manager
+      namespace: openshift-operators
+      channel: stable
+
+    ansible:
+      name: ansible-automation-platform-operator
+      namespace: ansible
+      source: redhat-operators
+      channel: stable-2.4
+
+    rhacs-operator:
+      name: rhacs-operator
+      namespace: rhacs-operator
+      source: redhat-operators
+      channel: stable
+
+    osus:
+      name: cincinnati-operator
+      namespace: openshift-update-service
+      source: redhat-operators
+      channel: v1
+
+  projects:
+    - hub
+
+  applications:
+    perf-profile:
+      name: perf-profile
+      project: hub
+      path: charts/mgt-hub/perf-profile
+
+    acm:
+      name: acm
+      namespace: open-cluster-management
+      project: hub
+      path: charts/mgt-hub/acm
+      ignoreDifferences:
+        - group: internal.open-cluster-management.io
+          kind: ManagedClusterInfo
+          jsonPointers:
+            - /spec/loggingCA
+
+    drtest:
+      name: drtest
+      namespace: open-cluster-management-backup
+      project: hub
+      path: charts/mgt-hub/drtest
+
+    mce:
+      name: mce
+      namespace: multicluster-engine
+      project: hub
+      path: charts/mgt-hub/mce
+
+    nmstate:
+      name: nmstate-crd
+      namespace: openshift-nmstate
+      path: charts/mgt-hub/nmstate
+      project: hub
+
+    cnv:
+      name: kubevirt-hyperconverged
+      namespace: openshift-cnv
+      path: charts/mgt-hub/cnv
+      project: hub
+
+    odf:
+      name: odf
+      namespace: openshift-storage
+      path: charts/mgt-hub/openshift-data-foundations
+      project: hub
+
+    lso:
+      name: local-storage
+      namespace: openshift-local-storage
+      path: charts/mgt-hub/lso
+      project: hub
+
+    quay:
+      name: quay
+      namespace: quay-enterprise
+      path: charts/mgt-hub/quay
+      project: hub
+
+    kafka:
+      name: kafka
+      namespace: kafka-cluster
+      path: charts/mgt-hub/kafka
+      project: hub
+
+    monitoring:
+      name: monitoring
+      namespace: prom-kafka-adapter
+      path: charts/mgt-hub/monitoring
+      project: hub
+
+    gitops:
+      name: gitops
+      namespace: npss-gitops
+      path: charts/mgt-hub/gitops
+      project: hub
+
+    logging:
+      name: logging
+      namespace: openshift-logging
+      path: charts/mgt-hub/logging
+      project: hub
+
+    stf:
+      name: stf
+      namespace: service-telemetry
+      path: charts/mgt-hub/stf
+      project: hub
+
+    vms:
+      name: vms
+      namespace: mgmt-apps
+      project: hub
+      path: charts/mgt-hub/vm-on-bm
+
+    ansible:
+      name: ansible
+      path: charts/mgt-hub/ansible
+      project: hub
+
+    security:
+      name: security
+      namespace: stackrox
+      path: charts/mgt-hub/rhacs-central
+      project: hub
+
+mgmt:
+  # provisioner_ip: 192.168.22.4
+  # cluster_name: caumgmtocp
+  # domain: turkcell.tgc
+  # dns_server_ip:
+  # apps_ns: mgmt-apps
+  # apps_nad_name: nad-br-apps
+  # apps_subnet: 10.0.42.0
+  # apps_subnet_len: 24
+  # apps_subnet_gw: 10.0.42.1
+
+  #
+  # Variables for Ansible playbooks
+  #
+  vars_path: /home/mano1/TNC/vpattern/playbooks/vars
+  deploy_idm: true
+  deploy_satellite: true
+  deploy_gitlab: true
+
+  idm:
+    qcow: rhel-9.2-x86_64-kvm.qcow2
+    app_name: idm-server
+    domain: identity
+    password: redhat
+    user: admin
+    ip: 10.0.42.5
+    hostname: idm1mgmt1
+    ipaserver: idm1mgmt1.caumgmtocp.turkcell.tgc
+
+  satellite:
+    qcow: rhel-8.8-x86_64-kvm.qcow2
+    app_name: sat-server
+    domain: satellite
+    password: redhat
+    user: admin
+    ip: 10.0.42.4
+    hostname: satellite
+
+  git:
+    qcow: rhel-9.2-x86_64-kvm.qcow2
+    app_name: git-server
+    domain: git
+    password: redhat
+    user: admin
+    ip: 10.0.42.6
+    hostname: git
+    git_fqdn: git.caumgmtocp.turkcell.tgc
+
