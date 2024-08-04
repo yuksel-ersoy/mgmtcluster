@@ -1,0 +1,56 @@
+---
+- name: Config Subscription Manager Proxy
+  shell: subscription-manager config --server.proxy_hostname="{{ proxy_hostname }}" --server.proxy_port="{{ proxy_port }}"
+
+- name: Register server with CDN
+  vars:
+    rhsm_repositories: "{{ rhsm.rhsm_repositories }}"
+  import_role:
+    name: oasis_roles.system.rhsm
+  tags:
+    - rhsm
+
+- name: Enable satellite module
+  ansible.builtin.command: dnf module enable satellite:el8 -y
+
+#
+# Playbook failing because of missing apypie
+#
+- name: Install pip3
+  yum:
+    name: python3-pip
+    state: installed
+
+- name: Install apypie
+  ansible.builtin.command: pip3 install --proxy http://"{{ proxy_hostname }}:{{ proxy_port }}" apypie
+  
+- name: Enable required guest services
+  vars:
+    services: "{{ rhsm.services }}"
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items: "{{ services }}"
+  tags:
+    - services
+
+- name: Set hostname
+  import_role:
+    name: oasis_roles.system.hostname
+  vars:
+    hostname_inject_hosts_files: false
+  tags:
+    - hostname
+
+- name: Import satellite install role
+  import_role:
+    name: oasis_roles.satellite.install
+  vars:
+    satellite_server_url:  "{{ satellite.server_url }}"
+    satellite_hostname: "{{ ansible_hostname }}"
+    satellite_domain: "{{ dns_domain }}"
+    satellite_hostip: "{{ satellite_ip }}"
+    satellite_options: "{{ satellite.options }}"
+    satellite_packages: "{{ rhsm.packages}}"
+

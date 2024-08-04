@@ -1,0 +1,75 @@
+- name: Configure an NPSS RA Management Cluster
+  hosts: localhost
+  #vars:
+  #  - ansible_python_interpreter: /usr/bin/python3.9
+  vars_files:
+    - /home/mano1/TNC/vpattern/playbooks/vars/common.yml
+    - /home/mano1/TNC/vpattern/playbooks/vars/secret.yml
+    - /home/mano1/TNC/vpattern/playbooks/vars/satellite.yml
+    - /home/mano1/TNC/vpattern/playbooks/vars/idm-groups-users.yml
+    - /home/mano1/TNC/vpattern/values-hub.yaml
+  tasks:
+    - name: Deploy Satellite
+      block:
+        - ansible.builtin.include_role:
+            name: satellite
+          vars:
+            - state: present
+      rescue:
+        # - ansible.builtin.include_role:
+        #     name: satellite
+        #   vars:
+        #     - state: absent
+        - fail:
+            msg: "Something failed installing Satellite."
+      tags: satellite
+      when: mgmt.deploy_satellite | default(false) | bool
+
+    - name: Deploy IDM
+      block:
+        - ansible.builtin.include_role:
+            name: idm
+          vars:
+            - state: present
+      rescue:
+        # - ansible.builtin.include_role:
+        #     name: idm
+        #   vars:
+        #     - state: absent
+        - fail:
+            msg: "Something failed installing IDM."
+      tags: idm
+      when: mgmt.deploy_idm | default(false) | bool
+
+    - name: Deploy Quay
+      block:
+        - ansible.builtin.include_role:
+            name: quay
+          vars:
+            - state: present
+      rescue:
+        # - ansible.builtin.include_role:
+        #     name: quay
+        #   vars:
+        #     - state: absent
+        - fail:
+            msg: "Something failed installing Quay."
+      tags: quay
+
+    - name: Deploy GitLab
+      block:
+        - ansible.builtin.include_role:
+            name: gitlab
+          vars:
+            - state: present
+      rescue:
+        # - ansible.builtin.include_role:
+        #     name: gitlab
+        #   vars:
+        #     - state: absent
+        - fail:
+            msg: "Something failed installing GitLab."
+      tags: gitlab
+      when: mgmt.deploy_gitlab | default(false) | bool
+
+

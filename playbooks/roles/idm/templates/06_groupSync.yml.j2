@@ -1,0 +1,20 @@
+kind: "LDAPSyncConfig"
+apiVersion: "v1"
+url: "ldap://{{ mgmt.idm.ip }}"
+insecure: true
+bindDN: "uid=ocp-bind-user,cn=users,cn=accounts,{{ mgmt.ldap_dc }}"
+bindPassword: "{{ idm_ocp_bind_password }}"
+  #ca: "/home/mano2/air-gapped/mano2-cluster/08.idm/3.ocp_auth/idm-cert/ca.crt"
+rfc2307:
+  groupsQuery:
+    baseDN: "cn=groups,cn=accounts,{{ mgmt.ldap_dc }}"
+    derefAliases: "never"
+    filter: "(objectClass=groupofnames)"
+  groupUIDAttribute: "dn"
+  groupNameAttributes: ["cn"]
+  groupMembershipAttributes: ["member"]
+  usersQuery:
+    baseDN: "cn=users,cn=accounts,{{ mgmt.ldap_dc }}"
+    derefAliases: "never"
+  userNameAttributes: ["uid"]
+  userUIDAttribute: "dn"

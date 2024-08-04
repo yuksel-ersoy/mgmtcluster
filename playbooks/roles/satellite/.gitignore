@@ -1,0 +1,14 @@
+.DS_Store
+*.txt
+*.pub
+!requirements.txt
+__stuff/**
+.history/
+.vscode
+*.idea
+te?mp
+logs?
+*.swp
+*.pyc
+secrets.yml
+*.vault_pass

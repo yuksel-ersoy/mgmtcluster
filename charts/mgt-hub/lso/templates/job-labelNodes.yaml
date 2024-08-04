@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: job-label-storage-nodes
+  namespace: {{ .Values.lso.namespace }}
+spec:
+  template:
+    spec:
+      containers:
+      - image: {{ .Values.job.image }}
+        command:
+        - /bin/bash
+        - -c
+        - |
+          while [ $(oc get co | grep -vc "True        False         False") != "1" ]; do echo "watiting for all cluster operators to be ready...sleep 5 secs"; sleep 5;done 
+          echo "All operators are healthy..."
+          while [ $(oc get nodes | grep -v -c Ready) != "1" ]; do echo "waiting for all nodes to be ready...sleep 5 secs"; sleep 5; done  
+          echo "All nodes are ready..."
+          # echo "Formatting all the disks now...."
+          # for NODE in $(oc get nodes -ojsonpath='{.items[*].metadata.name}'); do oc debug node/$NODE -- chroot /host /bin/bash -c 'for DISK in $(lsblk -pJ | jq -r .blockdevices[].name | grep -v "loop\|sdb\|sr0\|rbd"); do echo "formatting: "$DISK; sgdisk -Z $DISK; done' ; done
+          echo "Starting to Label nodes....First try:"
+          oc label nodes -l node-role.kubernetes.io/worker= cluster.ocs.openshift.io/openshift-storage='' --overwrite
+          echo "Checking if all workers are labelled..."
+          while [ $(oc get nodes -l node-role.kubernetes.io/worker= | wc -l) != $(oc get nodes -l cluster.ocs.openshift.io/openshift-storage= | wc -l) ]; do echo "All workers not yet labelled, trying again in 5 secs..."; sleep 5;  oc label nodes -l node-role.kubernetes.io/worker= cluster.ocs.openshift.io/openshift-storage='' --overwrite; done
+        name: label-storage-nodes
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      serviceAccount: {{ .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      terminationGracePeriodSeconds: {{ .Values.lso.jobTerminationGracePeriod }}

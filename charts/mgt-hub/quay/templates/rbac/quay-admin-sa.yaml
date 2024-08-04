@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: quay-admin-sa
+  namespace: {{ .Values.mgmt.quay.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+

@@ -1,0 +1,11 @@
+# OpenShift cluster
+
+kubeconfig_path: /home/mano1/TNC/install/auth/kubeconfig
+
+# Basic Environment
+
+# GitLab
+
+git_hostname: git
+git_ip: 10.0.41.42
+

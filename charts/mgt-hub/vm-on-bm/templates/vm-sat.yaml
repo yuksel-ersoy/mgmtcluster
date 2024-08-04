@@ -1,0 +1,101 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  annotations:
+    name.os.template.kubevirt.io/rhel8.8: Red Hat Enterprise Linux 9.0 or higher
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app: "{{ .Values.mgmt.satellite.app_name }}"
+    flavor.template.kubevirt.io/medium: "true"
+    os.template.kubevirt.io/rhel8.8: "true"
+    workload.template.kubevirt.io/server: "true"
+  name: "{{ .Values.mgmt.satellite.hostname }}"
+  namespace: "{{ .Values.mgmt.apps_ns }}"
+spec:
+  dataVolumeTemplates:
+  - apiVersion: cdi.kubevirt.io/v1alpha1
+    kind: DataVolume
+    metadata:
+      creationTimestamp: null
+      name: "{{ .Values.mgmt.satellite.hostname }}-rootdisk-0"
+    spec:
+      pvc:  #Set acccessModes to RWX and volumeMode to block for live migration and VM pod eviction
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 1000Gi
+        storageClassName: ocs-storagecluster-ceph-rbd
+        volumeMode: Block
+      source:
+        http:
+          url: http://{{ .Values.mgmt.provisioner_ip }}/{{ .Values.mgmt.satellite.qcow }}
+  running: true
+  template:
+    metadata:
+      labels:
+        flavor.template.kubevirt.io/medium: "true"
+        kubevirt.io/domain: "{{ .Values.mgmt.satellite.domain }}"
+        kubevirt.io/size: large
+        os.template.kubevirt.io/rhel8.8: "true"
+        vm.kubevirt.io/name: "{{ .Values.mgmt.satellite.domain }}"
+        workload.template.kubevirt.io/server: "true"
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      domain:
+        cpu:
+          cores: 16
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: rootdisk
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: nic-1
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 32Gi
+      evictionStrategy: LiveMigrate
+      hostname: "{{ .Values.mgmt.satellite.hostname }}"
+      networks:
+        - multus:
+            networkName: "{{ .Values.mgmt.apps_nad_name }}"
+          name: nic-1
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              ssh_pwauth: True
+              user: {{ .Values.mgmt.satellite.user }}
+              password: {{ .Values.mgmt.satellite.password }}
+              chpasswd:
+                expire: false
+            networkData: |
+              version: 2
+              ethernets:
+                eth0:
+                  addresses:
+                  - "{{ .Values.mgmt.satellite.ip }}/{{ .Values.mgmt.apps_subnet_len }}"
+                  gateway4: "{{ .Values.mgmt.apps_subnet_gw }}"
+                  nameservers:
+                    search: [{{ .Values.mgmt.domain }}]
+                    addresses: [{{ .Values.mgmt.dns_server_ip}}]
+          name: cloudinitdisk
+        - dataVolume:
+            name: "{{ .Values.mgmt.satellite.hostname }}-rootdisk-0"
+          name: rootdisk
+

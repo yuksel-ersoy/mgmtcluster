@@ -1,0 +1,102 @@
+= idm role
+
+This role allows to install/uninstall IDM in an OpenShift cluster using OpenShift Virtualization.
+
+== Requirements
+
+* Ansible 2.9
+* OpenShift 4.10
+
+== Role Variables
+
+List of variables used by the role. The ones marked as _required_ need to be added to the playbook.
+
+[cols="4*<.^",options=header]
+|===
+|Variable |Description | Required | Default 
+
+|kubeconfig_path | Path to the kubeconfig file | Yes | None
+
+|rhocp_user | OpenShift user | Yes | None
+
+|domain | Domain | Yes | None
+
+|ipaadmin_password |IPA admin password. | Yes | None
+
+|ipadm_password |IPA dm password. | Yes | None
+
+|satellite_ip |IP address of the external Satellite server. | Yes | None
+
+|satellite_fqdn |FQDN of the external Satellite server. | Yes | None
+
+|satellite_katello_url |URL of the `katello-ca-consumer-latest.noarch.rpm`` file in the external Satellite server. | Yes | None
+
+|satellite_org_name |Name of the organization in the external Satellite server. | Yes | None
+
+|satellite_activation_key |Name of the activation key in the external Satellite server. | Yes | None
+
+|idm_password | IDM VMs password | Yes | None
+
+|apps_ns |Namespace used to install the applications that will run in the management cluster. | Yes | None
+
+|apps_nad_name |Name of the NetworkAttachmentDefinition CR used for the application traffic. | Yes | None
+
+|apps_subnet_gw |Gateway of the subnet used for application-related traffic. | No | 10.60.3.1
+
+|idm_user |Name of the IDM admin user. | Yes | None
+
+|idm_server_ip |IP address of the IDM virtual machine. | Yes | None
+
+|idm_replica_ip |IP address of the IDM replica virtual machine. | Yes | None
+
+|idm_server_hostname |Hostname to be used in the IDM virtual machine. | Yes | None
+
+|idm_replica_hostname |Hostname to be used in the IDM replica virtual machine. | Yes | None
+
+|idm_server_vm_name |Name of the IDM virtual machine. | No | idm_server
+
+|idm_replica_vm_name |Name of the IDM replica virtual machine. | No | idm_replica
+
+|rhel_8 |Name of the qcow2 image to be used to create the VM. | No | rhel-8.4-x86_64-kvm.qcow2
+
+|idm_app_name |Name of the application used in the VM template. | No | idm
+
+|idm_domain |Name of the domain used in the VM template. | No | identity
+
+|===
+
+== Examples
+
+Example playbook to install an IDM server and an IDM replica getting required variables from the playbook_required_vars.yml file:
+
+[source, yaml]
+----
+- name: Playbook to install IDM
+  hosts: provisioner_host
+  vars_file:
+    - playbook_required_vars.yml
+  roles:
+    - role: idm
+      state: present
+----
+
+Example playbook to uninstall an IDM server and an IDM replica getting required variables from the playbook_required_vars.yml file:
+
+[source, yaml]
+----
+- name: Playbook to uninstall IDM
+  hosts: provisioner_host
+  vars_file:
+    - playbook_required_vars.yml
+  roles:
+    - role: idm
+      state: absent
+----
+
+== License
+
+TBD
+
+== Author Information
+
+Alaitz Mendiola <alaitz@redhat.com>

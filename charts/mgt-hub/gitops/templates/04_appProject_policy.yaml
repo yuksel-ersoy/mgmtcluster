@@ -1,0 +1,31 @@
+apiVersion: {{ .Values.openshift_gitops_api_version }}
+kind: AppProject
+metadata:
+  name: policy-app-project
+  namespace: {{ .Values.ztp_instance_ns }}
+spec:
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'hive.openshift.io'
+    kind: ClusterImageSet
+  destinations:
+  - namespace: 'ztp*'
+    server: '*'
+  - namespace: '{{ .Values.ztp_instance_ns }}'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Namespace
+  - group: 'apps.open-cluster-management.io'
+    kind: PlacementRule
+  - group: 'policy.open-cluster-management.io'
+    kind: Policy
+  - group: 'policy.open-cluster-management.io'
+    kind: PlacementBinding
+  - group: 'ran.openshift.io'
+    kind: PolicyGenTemplate
+  sourceRepos:
+  - '*'

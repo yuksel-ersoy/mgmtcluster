@@ -1,0 +1,94 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  annotations:
+    name.os.template.kubevirt.io/rhel8.6: Red Hat Enterprise Linux 8.0 or higher
+  labels:
+    app: "{{ git_hostname }}"
+    os.template.kubevirt.io/rhel8.6: "true"
+    vm.kubevirt.io/template: rhel8-server-large
+    workload.template.kubevirt.io/server: "true"
+  name: "{{ git_hostname }}"
+  namespace: "{{ apps_ns }}"
+spec:
+  dataVolumeTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: "{{ git_hostname }}-rootdisk-0"
+    spec:
+      source:
+        http:
+          url: http://{{ provisioner_ip }}/{{ git_qcow }}      
+      storage:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 50Gi
+        storageClassName: ocs-storagecluster-ceph-rbd
+        volumeMode: Block        
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: "{{ git_hostname }}"
+        kubevirt.io/size: large
+        os.template.kubevirt.io/rhel8.6: "true"
+        vm.kubevirt.io/name: "{{ git_hostname }}"
+        workload.template.kubevirt.io/server: "true"
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: cloudinitdisk
+          - bootOrder: 1
+            disk:
+              bus: virtio
+            name: rootdisk
+          interfaces:
+          - bridge: {}
+            model: virtio
+            name: nic-0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.4.0
+        resources:
+          requests:
+            memory: 8Gi
+      evictionStrategy: LiveMigrate
+      hostname: "{{ git_hostname }}"
+      networks:
+      - multus:
+          networkName: "{{ apps_nad_name }}"
+        name: nic-0
+      terminationGracePeriodSeconds: 180
+      volumes:
+      - cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            ssh_pwauth: True
+            user: {{ git_user }}
+            password: {{ git_password }}
+            chpasswd:
+              expire: false
+          networkData: |
+            version: 2
+            ethernets:
+              eth0:
+                addresses:
+                - {{ git_ip }}/{{ apps_subnet_len }}
+                gateway4: {{ apps_subnet_gw }}
+                nameservers:
+                  search: [{{ domain }}]
+                  addresses: [{{dns_server_ip }}]
+        name: cloudinitdisk
+      - dataVolume:
+          name: "{{ git_hostname }}-rootdisk-0"
+        name: rootdisk

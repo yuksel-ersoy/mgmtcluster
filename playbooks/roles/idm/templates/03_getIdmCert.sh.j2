@@ -1,0 +1,12 @@
+echo "Delete old cert"
+rm -rf idm-cert
+mkdir idm-cert
+
+echo "Pick up IDM CA Certificate"
+scp -o StrictHostKeyChecking=no admin@{{ mgmt.idm.ip }}:/etc/ipa/ca.crt idm-cert/ca.crt 
+
+echo "Create CA Config Map"
+oc -n openshift-config delete configmap ca-config-map
+oc -n openshift-config create configmap ca-config-map --from-file=idm-cert/
+
+rm -rf idm-cert

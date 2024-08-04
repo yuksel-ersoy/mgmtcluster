@@ -1,0 +1,89 @@
+---
+- name: Generate dynamic inventory
+  block:
+    - name: Add host to group ipaserver
+      ansible.builtin.add_host:
+        name: "{{ mgmt.idm.ipaserver }}"
+        ansible_user: "{{ mgmt.idm.user }}"
+        groups: ipaservers
+
+- name: Copy ssh ID to IDM 1 VM
+  ansible.builtin.command: sshpass -p "{{ mgmt.idm.password }}" ssh-copy-id -o StrictHostKeyChecking=no {{ mgmt.idm.user }}@{{ mgmt.idm.hostname }}.{{ mgmt.domain }}
+  changed_when: true
+
+- name: Install IDM server - IDM1
+  become: true
+  delegate_to: "{{ mgmt.idm.hostname }}.{{ mgmt.domain }}"
+  block:
+    - name: Prepare VM to install IDM Server
+      ansible.builtin.include_tasks: prepare_idm_vm.yml
+      vars:
+        hostname: "{{ mgmt.idm.hostname }}.{{ mgmt.domain }}"
+
+    - name: Install IDM Server
+      vars:
+        ipaserver_domain: "{{ mgmt.domain }}"
+        ipaserver_realm: "{{ mgmt.domain | upper }}"
+        ipaserver_setup_dns: false
+        ipaserver_auto_forwarders: false
+        ipaadmin_principal: "{{ mgmt.idm.user }}"
+        ipaadmin_password: "{{ ipa_admin_password }}"
+        ipadm_password: "{{ ipa_dir_mgr_pass }}"
+      ansible.builtin.import_role:
+        name: ipaserver
+
+    - name: Wait for 2 mins to IPA server to be ready
+      ansible.builtin.pause:
+        seconds: 120
+
+    - name: Create IDM groups and users
+      ansible.builtin.include_tasks: create_idm_users_groups.yml
+
+- name: OCP to IDM Integration
+  block:
+    - name: Create a directory to store scripts if it does not exist
+      ansible.builtin.file:
+        path: "{{ scripts_path }}"
+        state: directory
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+        mode: '0755'
+
+    - name: Render Scripts
+      ansible.builtin.template:
+        src: "{{ item }}.j2"
+        dest: "{{ scripts_path }}/{{ item }}"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+        mode: '0755'
+      with_items:
+        - 03_getIdmCert.sh
+        - 04_ldap-secret.sh
+        - 06_groupSync.yml
+        - 07_whitelist.txt
+        - 08_runSync.sh
+
+    - name: Run scripts to create config map and secret
+      ansible.builtin.script:
+        cmd: "{{ scripts_path }}/{{ item }}"
+      with_items:
+        - 03_getIdmCert.sh
+        - 04_ldap-secret.sh
+
+    - name: Configure OCP Oauth
+      ansible.builtin.include_tasks: create_resource.yml
+      vars:
+        src: 05_oauth.yml
+        ansible_python_interpreter: /usr/bin/python3.9
+
+    - name: Run script to enable LDAP group synchronization
+      ansible.builtin.script:
+        cmd: "{{ scripts_path }}/{{ item }}"
+      with_items:
+        - 08_runSync.sh
+
+    - name: Delete scripts directory
+      ansible.builtin.file:
+        path: "{{ scripts_path }}"
+        state: absent
+

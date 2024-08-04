@@ -1,0 +1,13 @@
+---
+# tasks file for satellite
+
+- name: login to OCP cluster
+  ansible.builtin.include_tasks: cluster_login.yml
+
+- name: Install Satellite
+  ansible.builtin.include_tasks: install.yml
+  when: state|default('present') == 'present'
+
+- name: Uninstall Satellite
+  ansible.builtin.include_tasks: uninstall.yml
+  when: state|default('present') == 'absent'

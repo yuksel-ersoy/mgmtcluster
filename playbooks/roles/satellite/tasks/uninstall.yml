@@ -1,0 +1,5 @@
+---
+- name: Include delete_resource.yml
+  ansible.builtin.include_tasks: delete_resource.yml
+  vars:
+    src: 01_satellite_vm.yml

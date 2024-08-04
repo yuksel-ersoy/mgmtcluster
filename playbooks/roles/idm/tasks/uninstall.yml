@@ -1,0 +1,10 @@
+---
+- name: Include delete_resource.yml
+  ansible.builtin.include_tasks: delete_resource.yml
+  vars:
+    src: 01_idm_server_vm.yml
+
+- name: Include delete_resource.yml
+  ansible.builtin.include_tasks: delete_resource.yml
+  vars:
+    src: 02_idm_replica_vm.yml

@@ -1,0 +1,9 @@
+---
+- name: Delete resource defined in {{ src }}
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    username: "{{ rhocp_user }}"
+    password: "{{ rhocp_password }}"
+    state: absent
+    template:
+      path: "{{ src }}"

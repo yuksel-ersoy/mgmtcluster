@@ -1,0 +1,93 @@
+idm_users:
+  - name: abokhari
+    givenname: Ali
+    sn: Bokhari
+    password: 'redhat123'
+    state: present
+  - name: shassan
+    givenname: Syed
+    sn: Hassan
+    password: 'redhat123'
+    state: present
+  - name: oahmed
+    givenname: Omar
+    sn: Ahmed
+    password: 'redhat123'
+    state: present
+  - name: broskos
+    givenname: Brent
+    sn: Roskos
+    password: 'redhat123'
+    state: present
+  - name: ygohar
+    givenname: Yasir
+    sn: Gohar
+    password: 'redhat123'
+    state: present
+  - name: ncocker
+    givenname: Nabeel
+    sn: Cocker
+    password: 'redhat123'
+    state: present
+
+idm_system_users:
+  - name: ocp-bind-user
+    givenname: OpenShift
+    sn: User
+    password: 'OpenShift.2023'
+    state: present
+  - name: osp-bind-user
+    givenname: OpenStack
+    sn: User
+    password: '8EGQSpjIm5UtFeLzyRM/nQ=='
+    state: present
+  - name: quay-bind-user
+    givenname: Quay
+    sn: User
+    password: 'vriESYGoV02AIsXoCZjhdw==' # openssl rand -base64 16
+    state: present
+  - name: quay
+    givenname: Quay
+    sn: Reg
+    password: 'registry' # openssl rand -base64 16
+    state: present
+  - name: ansible-bind-user
+    givenname: Ansible
+    sn: User
+    password: 'Jn6E7Mpsi9fb07cJzEwbJw==' # openssl rand -base64 16
+    state: present
+  - name: satellite-bind-user
+    givenname: Satellite
+    sn: User
+    password: '3dKSPe4Q3WG5e5MDdO4RDw==' # openssl rand -base64 16
+    state: present
+  - name: coreos-bind-user
+    givenname: Coreos
+    sn: user
+    password: 'redhat123'
+    state: present    
+
+idm_groups:
+  - cicd-admins
+  - cnf-devs
+  - gitlab-cicd
+  - grp-openstack
+  - ocpusers
+  - ocpadmins
+  - quayusers
+  - ansibleusers
+  - rhcosadmins
+
+ocp_admin_users:
+  - abokhari
+  - oahmed
+  - shassan
+  - ygohar
+  - ncocker
+  - broskos
+
+rhcos_admin_users:
+  - abokhari
+  - oahmed
+  - shassan
+  - broskos

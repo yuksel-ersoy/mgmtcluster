@@ -1,0 +1,4 @@
+---
+# vars file for gitlab
+
+git_qcow: rhel-8.6-x86_64-kvm.qcow2

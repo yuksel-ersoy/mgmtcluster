@@ -1,0 +1,22 @@
+---
+- name: Set hostname "{{ hostname }}
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+
+- name: Downloading katello agent from satellite on "{{ hostname }}
+  dnf:
+    name: "http://{{ satellite_fqdn }}/pub/katello-ca-consumer-latest.noarch.rpm"
+    disable_gpg_check: True
+    state: present
+  become: true
+  become_method: sudo
+  register: katello
+
+- name: Registering the system against satellite
+  redhat_subscription:
+    state: present
+    activationkey: "{{ idm_activation_key }}"
+    org_id: "{{ satellite_org_name }}"
+  become: true
+  become_method: sudo
+

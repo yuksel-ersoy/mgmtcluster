@@ -1,0 +1,141 @@
+= satellite role
+
+This role allows to install/uninstall Satellite in an OpenShift cluster using OpenShift Virtualization.
+
+== Requirements
+
+* Ansible 2.9
+* OpenShift 4.10
+* OpenShift Container Storage 
+* OpenShift Virtualization operator
+* IDM (if integration is enabled)
+
+=== Manifest file
+
+This role requires a valid manifest file for the Satellite with the subscription allocation. To create the subscription allocation with the needed subscriptions please use this link:https://access.redhat.com/management/subscription_allocations/new[link]. This role has been verified with a manifest containing 500 SKU subscriptions.
+
+Download the manifest and store it as `~/manifest.zip` on the bastion server.
+
+=== Registry Service Account
+
+Create a registry service account using this link:https://access.redhat.com/RegistryAuthentication[link] and use the credentials for that service account while creating the secrets file.
+
+=== Secrets file
+
+Put all the sensitive data in the `files/secrets.yml`` file. To ease this step we provide the `files/secrets.yml.sample` file that you can edit and rename. This file will be used to launch the automation playbooks available in this link:https://gitlab.consulting.redhat.com/global-telco-practice/satellite/-/tree/emea_scalelab/playbooks/satellite[repo] and requires having the vault password stored in a `files/.vault_pass` file that you must create. The `.gitignore` file in this repository prevents pushing both files, `files/secrets.yml` and `.files/vault_pass`, to the repository.
+
+The `secrets.yml` file must contain the following information:
+
+[source, yaml]
+----
+ansible_user: root
+rhsm_username: <rhsm_username>
+rhsm_password: <rhsm_password>
+satellite_admin_username: <satellite_admin_username>
+satellite_admin_password: <satellite_password>
+container_registry_url: https://registry.redhat.io
+container_registry_upstream_username: <service account registry_username>
+container_registry_upstream_password: <service account registry_password>
+----
+
+== Role Variables
+
+List of variables used by the role. The ones marked as _required_ need to be added to the playbook.
+
+[cols="4*<.^",options=header]
+|===
+|Variable |Description | Required | Default 
+
+|kubeconfig_path | Path to the kubeconfig file | Yes | None
+
+|rhocp_user | OpenShift user | Yes | None
+
+|domain | Domain | Yes | None
+
+|ipaadmin_passwordfootnote:idm[If integration with IDM is enabled] |IPA admin password. | Yes  | None
+
+|satellite_admin_username |Satellite admin username (this must be the same in the `files/secrets.yml`). | Yes | None
+
+|satellite_admin_password |Satellite admin password this must be the same in the `files/secrets.yml`.| Yes | None
+
+|satellite_ip |IP address of the external Satellite server that the VM uses to register. | Yes | None
+
+|satellite_fqdn |FQDN of the external Satellite server that the VM uses to register. | Yes | None
+
+|satellite_katello_url |URL of the `katello-ca-consumer-latest.noarch.rpm`` file in the external Satellite server that the VM uses to register. | Yes | None
+
+|satellite_org_name |Name of the organization in the external Satellite server that the VM uses to register. | Yes | None
+
+|satellite_activation_key |Name of the activation key in the external Satellite server that the VM uses to register. | Yes | None
+
+|manifest_path |Path to the manifest file with the subscription allocations that will be available for the workload cluster. | Yes | Nonefootnote:[Contains 500 Employee SKU subscription allocations]
+
+|idm_integration | Indicates whether the Satellite must integrate with IDM or not | Yes | None
+
+|idm_server_ipfootnote:idm[] |IP address of the IDM server. | Yes (if idm_integration = true) | None
+
+|idm_replica_ipfootnote:idm[] |IP address of the IDM replica. | Yes (if idm_integration = true) | None
+
+|idm_server_hostnamefootnote:idm[] |Hostname of the IDM server. | Yes | None
+
+|idm_replica_hostnamefootnote:idm[] |Hostname of the IDM replica. | Yes | None
+
+|apps_ns |Namespace used to install the applications that will run in the management cluster. | Yes | None
+
+|satellite_nad_name |Name of the NetworkAttachmentDefinition CR used for Internet traffic. | Yes | None
+
+|provisioning_subnet_gw |Gateway of the subnet used for Internet access. | No | 192.168.35.1
+
+|mgmt_satellite_hostname |Hostname of the internal Satellite server. This is the Satellite server that the workload clusters will use. | Yes | None
+
+|mgmt_satellite_ip |IP address of the internal Satellite server. | Yes | None
+
+|mgmt_satellite_vm_name |Name of the Satellite virtual machine. | No | satellite
+
+|http_store_satellite_path | Path to the http store where the manifest for the Satellite is stored | No | /opt/http_store/data/satellite
+
+|satellite_automation_repo | Repository that contains the automation playbooks to install and configure the Satellite | No | ssh://git@gitlab.consulting.redhat.com:2222/global-telco-practice/satellite.git
+
+|satellite_automation_path |Directory where the _satellite_automation_repo_ is cloned | No | ~/satellite_automation
+
+|satellite_automation_version | Version (branch) of the _satellite_automation_repo_ | No | emea_scalelab
+
+|rhel_8 |Name of the qcow2 image to be used to create the VM. | No | rhel-8.4-x86_64-kvm.qcow2
+
+|===
+
+== Examples
+
+Example playbook to install Satellite getting required variables from the playbook_required_vars.yml file:
+
+[source, yaml]
+----
+- name: Playbook to install Satellite
+  hosts: provisioner_host
+  vars_file:
+    - playbook_required_vars.yml
+  roles:
+    - role: satellite
+      state: present
+----
+
+Example playbook to uninstall Satellite getting required variables from the playbook_required_vars.yml file:
+
+[source, yaml]
+----
+- name: Playbook to uninstall Satellite
+  hosts: provisioner_host
+  vars_file:
+    - playbook_required_vars.yml
+  roles:
+    - role: satellite
+      state: absent
+----
+
+== License
+
+TBD
+
+== Author Information
+
+Alaitz Mendiola <alaitz@redhat.com>

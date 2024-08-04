@@ -1,0 +1,26 @@
+---
+cnv:
+  debug:
+    useEmulation: false
+
+namespaceOverride: openshift-cnv
+
+kafka:
+  topics:
+    - name: mgmt1-ocp-metrics
+    - name: mgmt1-infra-logs
+    - name: mgmt1-app-logs
+    - name: mgmt1-audit-logs
+    - name: mgmt2-ocp-metrics
+    - name: mgmt2-infra-logs
+    - name: mgmt2-app-logs
+    - name: mgmt2-audit-logs
+    - name: cwl-site1-ocp-metrics
+    - name: cwl-site1-infra-logs
+    - name: cwl-site1-app-logs
+    - name: cwl-site1-audit-logs
+    - name: cwl-site2-ocp-metrics
+    - name: cwl-site2-infra-logs
+    - name: cwl-site2-app-logs
+    - name: cwl-site2-audit-logs
+    - name: stf-metrics

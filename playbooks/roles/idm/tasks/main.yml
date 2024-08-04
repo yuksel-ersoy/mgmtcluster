@@ -1,0 +1,27 @@
+---
+# tasks file for idm
+
+- name: login to OCP cluster
+  ansible.builtin.include_tasks: cluster_login.yml
+
+- name: Enable repo on bastion
+  community.general.rhsm_repository:
+    name: rhel-9-for-x86_64-appstream-rpms
+    state: enabled
+  become: true
+  become_method: sudo
+
+- name: Install IPA package on bastion
+  ansible.builtin.dnf:
+    name: ansible-freeipa
+    state: present
+  become: true
+  become_method: sudo
+
+- name: Install IDM
+  ansible.builtin.include_tasks: install.yml
+  when: state|default('present') == 'present'
+
+- name: Uninstall IDM
+  ansible.builtin.include_tasks: uninstall.yml
+  when: state|default('present') == 'absent'

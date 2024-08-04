@@ -1,0 +1,6 @@
+---
+- name: Restart http store
+  become: true
+  ansible.builtin.service:
+    name: http_store.service
+    state: restarted

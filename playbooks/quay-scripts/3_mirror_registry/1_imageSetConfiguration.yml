@@ -1,0 +1,309 @@
+    #
+    # Use the command below to identify the default channel
+    #
+    # oc-mirror list operators --catalog registry.redhat.io/redhat/redhat-operator-index:v4.12 --package <pkg name>
+    #
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+archiveSize: 4                                                      
+storageConfig:                                                      
+  registry:
+    imageURL: quay1.apps.caumgmtocp.turkcell.tgc/ocp/oc-mirror-metadata
+    skipTLS: false
+mirror:
+  platform:
+    channels:
+    - name: eus-4.14
+      type: ocp
+      minVersion: 4.12.34
+      maxVersion: 4.14.30
+      shortestPath: true
+    - name: stable-4.13
+      type: ocp
+      minVersion: 4.13.44
+      maxVersion: 4.13.44
+    graph: true                                                     
+  operators:
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.12  
+      packages:
+      - name: cluster-logging
+        channels:
+        - name: stable
+        - name: stable-5.8
+        - name: stable-5.7
+      - name: kubevirt-hyperconverged
+        channels:
+        - name: stable
+      - name: local-storage-operator
+        channels:
+        - name: stable
+      - name: ocs-operator
+        channels:
+        - name: "stable-4.12"
+      - name: quay-operator
+        channels:
+        - name: "stable-3.9"
+        - name: "stable-3.10"
+        - name: "stable-3.11"
+      - name: sriov-network-operator
+        channels:
+        - name: stable
+        - name: "4.12"
+      - name: servicemeshoperator
+        channels:
+        - name: stable
+      - name: elasticsearch-operator
+        channels:
+        - name: stable-5.8
+        - name: stable
+      - name: jaeger-product
+        channels:
+        - name: stable
+      - name: kiali-ossm
+        channels:
+        - name: stable
+      - name: odf-operator
+        channels:
+        - name: stable-4.12
+      - name: odf-multicluster-orchestrator
+        channels:
+        - name: stable-4.12
+      - name: odf-csi-addons-operator
+        channels:
+        - name: stable-4.12
+      - name: mcg-operator
+        channels:
+        - name: stable-4.12
+      - name: metallb-operator
+        channels:
+        - name: stable
+      - name: kubernetes-nmstate-operator
+        channels:
+        - name: stable
+      - name: multicluster-engine
+        channels:
+        - name: stable-2.1
+        - name: stable-2.3
+        - name: stable-2.5
+      - name: advanced-cluster-management
+        channels:
+        - name: release-2.9
+        - name: release-2.8
+        - name: release-2.10
+      - name: rhacs-operator
+        channels:
+        - name: stable
+        - name: rhacs-4.3
+      - name: ptp-operator
+        channels:
+        - name: stable
+      - name: openshift-cert-manager-operator
+        channels:
+        - name: stable-v1
+      - name: openshift-custom-metrics-autoscaler-operator
+        channels:
+        - name: stable
+      - name: security-profiles-operator
+        channels:
+        - name: release-alpha-rhel-8
+      - name: numaresources-operator
+        channels:
+        - name: "4.12"
+      - name: lvms-operator
+        channels:
+        - name: "stable-4.12"
+      - name: kernel-module-management
+        channels:
+          - name: stable
+          - name: release-1.0
+          - name: release-1.1
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
+      packages:
+      - name: cluster-logging
+        channels:
+        - name: stable
+        - name: stable-5.9
+        - name: stable-5.8
+        - name: stable-5.7
+      - name: kubevirt-hyperconverged
+        channels:
+        - name: stable
+      - name: local-storage-operator
+        channels:
+        - name: stable
+      - name: ocs-operator
+        channels:
+        - name: "stable-4.13"
+      - name: quay-operator
+        channels:
+        - name: "stable-3.9"
+        - name: "stable-3.10"
+        - name: "stable-3.11"
+      - name: sriov-network-operator
+        channels:
+        - name: stable
+      - name: servicemeshoperator
+        channels:
+        - name: stable
+      - name: elasticsearch-operator
+        channels:
+        - name: stable-5.8
+        - name: stable
+      - name: jaeger-product
+        channels:
+        - name: stable
+      - name: kiali-ossm
+        channels:
+        - name: stable
+      - name: odf-operator
+        channels:
+        - name: stable-4.13
+      - name: odf-multicluster-orchestrator
+        channels:
+        - name: stable-4.13
+      - name: odf-csi-addons-operator
+        channels:
+        - name: stable-4.13
+      - name: mcg-operator
+        channels:
+        - name: stable-4.13
+      - name: metallb-operator
+        channels:
+        - name: stable
+      - name: kubernetes-nmstate-operator
+        channels:
+        - name: stable
+      - name: multicluster-engine
+        channels:
+        - name: stable-2.2
+        - name: stable-2.5
+      - name: advanced-cluster-management
+        channels:
+        - name: release-2.9
+        - name: release-2.8
+        - name: release-2.10
+      - name: rhacs-operator
+        channels:
+        - name: stable
+        - name: rhacs-4.3
+      - name: numaresources-operator
+        channels:
+        - name: "4.13"
+      - name: lvms-operator
+        channels:
+        - name: "stable-4.12"
+        - name: "stable-4.13"
+      - name: kernel-module-management
+        channels:
+          - name: stable
+          - name: release-1.0
+          - name: release-1.1
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.14
+      packages:
+      - name: cluster-logging
+        channels:
+        - name: stable
+        - name: stable-5.8
+        - name: stable-5.9
+      - name: kubevirt-hyperconverged
+        channels:
+        - name: stable
+      - name: local-storage-operator
+        channels:
+        - name: stable
+      - name: ocs-operator
+        channels:
+        - name: "stable-4.14"
+      - name: quay-operator
+        channels:
+        - name: "stable-3.10"
+        - name: "stable-3.11"
+      - name: sriov-network-operator
+        channels:
+        - name: stable
+      - name: servicemeshoperator
+        channels:
+        - name: stable
+      - name: elasticsearch-operator
+        channels:
+        - name: stable-5.8
+        - name: stable
+      - name: jaeger-product
+        channels:
+        - name: stable
+      - name: kiali-ossm
+        channels:
+        - name: stable
+      - name: odf-operator
+        channels:
+        - name: stable-4.14
+      - name: odf-multicluster-orchestrator
+        channels:
+        - name: stable-4.14
+      - name: odf-csi-addons-operator
+        channels:
+        - name: stable-4.14
+      - name: mcg-operator
+        channels:
+        - name: stable-4.14
+      - name: metallb-operator
+        channels:
+        - name: stable
+      - name: kubernetes-nmstate-operator
+        channels:
+        - name: stable
+      - name: multicluster-engine
+        channels:
+        - name: stable-2.3
+        - name: stable-2.4
+        - name: stable-2.5
+      - name: advanced-cluster-management
+        channels:
+        - name: release-2.9
+        - name: release-2.8
+        - name: release-2.10
+      - name: rhacs-operator
+        channels:
+        - name: stable
+      - name: ptp-operator
+        channels:
+        - name: stable
+      - name: openshift-cert-manager-operator
+        channels:
+        - name: stable-v1
+      - name: openshift-custom-metrics-autoscaler-operator
+        channels:
+        - name: stable
+      - name: security-profiles-operator
+        channels:
+        - name: release-alpha-rhel-8
+      - name: numaresources-operator
+        channels:
+        - name: '4.14'
+      - name: lvms-operator
+        channels:
+        - name: "stable-4.14"
+      - name: loki-operator
+        channels:
+        - name: "stable-5.9"
+      - name: kernel-module-management
+        channels:
+          - name: stable
+          - name: release-2.0
+          - name: release-2.1
+    - catalog: registry.redhat.io/redhat/certified-operator-index:v4.14
+      packages:
+      - name: sriov-fec
+        channels:
+        - name: stable
+  additionalImages:
+  - name: registry.redhat.io/ubi8/ubi:latest                        
+  - name: registry.redhat.io/openshift4/noderesourcetopology-scheduler-rhel9:v4.14
+  - name: quay.io/nginx/nginx-unprivileged:stable-alpine
+  - name: registry.redhat.io/rhel8/support-tools
+  - name: registry.redhat.io/rhel9/support-tools
+  - name: registry.redhat.io/openshift4/ose-tools-rhel8
+  - name: quay.io/ocp-edge-qe/centos-tools:latest 
+  - name: quay.io/karampok/snife:latest
+  helm: {}
+

@@ -1,0 +1,304 @@
+---
+satellite_ip: 10.0.42.4
+satellite_hostname: satellite
+satellite_fqdn: satellite.caumgmtocp.turkcell.tgc
+manifest_path: /home/mano1/TNC/vpattern/playbooks/files
+manifest_file: manifest_TNCLab_20231115T162553Z.zip
+http_store_satellite_path: /var/www/html/satellite
+idm_integration: false
+#
+datacenter: mgmt1
+dns_domain: 'caumgmtocp.turkcell.tgc'
+# Retry and delay values for any loops
+wait_retries: 30
+wait_delay: 10
+wait_timeout: 60
+wait_deploy_timeout: 360
+hostname: "{{ satellite_fqdn }}"
+
+  # Proxy for satellite
+proxy_hostname: 192.168.22.4
+proxy_port: 3128
+
+rhsm:
+  rhsm_org_id: default
+  rhsm_repositories:
+    disabled:
+      - '*'
+    enabled:
+      - rhel-8-for-x86_64-baseos-rpms
+      - rhel-8-for-x86_64-appstream-rpms
+      - satellite-6.13-for-rhel-8-x86_64-rpms
+      - satellite-maintenance-6.13-for-rhel-8-x86_64-rpms
+
+  packages:
+    - chrony
+    - firewalld
+    - satellite
+    - sos
+
+  services:
+#    - ovirt-guest-agent
+
+firewalld:
+  firewalld_zone: public
+  firewalld_ports_open:
+    - proto: tcp
+      port: 80
+    - proto: tcp
+      port: 443
+    - proto: tcp
+      port: 5647
+    - proto: tcp
+      port: 8000
+    - proto: tcp
+      port: 8140
+    - proto: tcp
+      port: 9090
+    - proto: udp
+      port: 53
+    - proto: tcp
+      port: 53
+    - proto: udp
+      port: 67
+    - proto: udp
+      port: 69
+    - proto: tcp
+      port: 5000
+
+# this block if for satellite data that is not defined elsewhere and needs to be consumed more than once in the satellite block below
+satellite_infra:
+  listen_address: "{{ satellite_fqdn }}"
+  organization: default
+  location: MGMT
+
+satellite:
+  server_url: "https://{{ satellite_fqdn }}/"
+  organization: "{{ satellite_infra.organization }}"
+  location: "{{ satellite_infra.location }}"
+  admin_username: "{{ satellite_admin_username }}"
+  admin_password: "{{ satellite_admin_password }}"
+  delete_host_upon_unregister: true
+  manifest:
+    state: present
+    # manifest states accepted: absent, present, refreshed
+    filename: manifest_TNCLab_20231115T162553Z.zip
+    remote_prefix: http://192.168.22.4/satellite/
+    temp_dir: ~/.ansible/tmp/
+  options: >-
+    --scenario satellite
+    --foreman-initial-admin-username "{{ satellite_admin_username }}"
+    --foreman-initial-admin-password "{{ satellite_admin_password }}"
+    --foreman-initial-organization  "{{ satellite_infra.organization }}"
+    --foreman-initial-location  "{{ satellite_infra.location }}"
+    --foreman-proxy-dns-managed false
+    --foreman-proxy-dns false
+    --foreman-proxy-dhcp false
+    --foreman-proxy-dhcp-managed false
+    --foreman-proxy-tftp false
+    --foreman-proxy-tftp-managed false
+    --foreman-proxy-content-enable-katello-agent true
+    --enable-foreman-plugin-discovery
+  enable_epel: false
+  lifecycle_environments:
+    - name: dev
+      description: The development environment
+      prior: Library
+    - name: stage
+      description: The staging environment
+      prior: dev
+    - name: prod
+      description: The production environment
+      prior: stage
+  activation_keys:
+    # OSP
+    - name: osp16-2-dev-overcloud
+      content_view: osp16-2
+      lifecycle_environment: dev
+      releasever: '8.4'
+      subscriptions:
+        - osp16_pool_id: 2c9f7e92876bbb6401876bc3e6f64155
+      content_overrides:
+        - label: rhel-8-for-x86_64-baseos-eus-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-appstream-eus-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-highavailability-eus-rpms
+          override: enabled
+        - label: ansible-2.9-for-rhel-8-x86_64-rpms
+          override: enabled
+        - label: satellite-tools-6.10-for-rhel-8-x86_64-rpms
+          override: enabled
+        - label: openstack-16.2-for-rhel-8-x86_64-rpms
+          override: enabled
+        - label: fast-datapath-for-rhel-8-x86_64-rpms
+          override: enabled
+        - label: rhceph-4-tools-for-rhel-8-x86_64-rpms
+          override: enabled
+        - label: advanced-virt-for-rhel-8-x86_64-rpms
+          override: disabled
+    - name: osp17-1-dev-overcloud
+      content_view: osp17-1
+      lifecycle_environment: dev
+      releasever: '9.2'
+      subscriptions:
+        - osp17_pool_id: 2c9f7e92876bbb6401876bc3e6f64155
+      content_overrides:
+        - label: rhel-9-for-x86_64-baseos-eus-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-appstream-eus-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-highavailability-eus-rpms
+          override: enabled
+        - label: openstack-17.1-for-rhel-9-x86_64-rpms
+          override: enabled
+        - label: fast-datapath-for-rhel-9-x86_64-rpms
+          override: enabled
+        - label: rhceph-6-tools-for-rhel-9-x86_64-rpms
+          override: enabled
+    # IDM
+    - name: idm-dev-rhel9
+      content_view: rhel9
+      lifecycle_environment: dev
+      releasever: '9.2'
+      subscriptions:
+        - idm_pool_id: 2c9f7e92876bbb6401876bc3e6ef4152
+      content_overrides:
+        - label: rhel-9-for-x86_64-baseos-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-appstream-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-baseos-eus-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-appstream-eus-rpms
+          override: enabled
+        - label: rhel-9-for-x86_64-highavailability-eus-rpms
+          override: enabled
+    # RHEL 8
+    - name: rhel8-dev
+      content_view: rhel8
+      lifecycle_environment: dev
+      releasever: '8.8'
+      subscriptions:
+        - rhel_pool_id: 2c9f7e92876bbb6401876bc3e6ef4152
+      content_overrides:
+        - label: rhel-8-for-x86_64-baseos-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-appstream-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-baseos-eus-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-appstream-eus-rpms
+          override: enabled
+        - label: rhel-8-for-x86_64-highavailability-eus-rpms
+          override: enabled
+
+  repository_sets:
+    # OSP
+    - label: rhel-8-for-x86_64-baseos-eus-rpms
+      releasever: '8.4'
+    - label: rhel-8-for-x86_64-appstream-eus-rpms
+      releasever: '8.4'
+    - label: rhel-8-for-x86_64-highavailability-eus-rpms
+      releasever: '8.4'
+    - label: rhel-9-for-x86_64-baseos-eus-rpms
+      releasever: '9.2'
+    - label: rhel-9-for-x86_64-appstream-eus-rpms
+      releasever: '9.2'
+    - label: rhel-9-for-x86_64-highavailability-eus-rpms
+      releasever: '9.2'
+    - label: "ansible-2.9-for-rhel-8-x86_64-rpms"
+    - label: "advanced-virt-for-rhel-8-x86_64-rpms"
+    - label: "satellite-tools-6.10-for-rhel-8-x86_64-rpms"
+    - label: "openstack-16.2-for-rhel-8-x86_64-rpms"
+    - label: "openstack-17.1-for-rhel-9-x86_64-rpms"
+    - label: "fast-datapath-for-rhel-8-x86_64-rpms"
+    - label: "fast-datapath-for-rhel-9-x86_64-rpms"
+    - label: "rhceph-4-tools-for-rhel-8-x86_64-rpms"
+    - label: "rhceph-5-tools-for-rhel-9-x86_64-rpms"
+    - label: "rhceph-6-tools-for-rhel-9-x86_64-rpms"
+    # RHEL 9
+    - label: rhel-9-for-x86_64-baseos-rpms
+      releasever: '9.2'
+    - label: "rhel-9-for-x86_64-appstream-rpms"
+      releasever: '9.2'
+    # RHEL 8
+    - label: "rhel-8-for-x86_64-baseos-rpms"
+      releasever: '8.8'
+    - label: "rhel-8-for-x86_64-appstream-rpms"
+      releasever: '8.8'
+    - label: "rhel-8-for-x86_64-baseos-eus-rpms"
+      releasever: '8.8'
+    - label: "rhel-8-for-x86_64-appstream-eus-rpms"
+      releasever: '8.8'
+    - label: "rhel-8-for-x86_64-highavailability-eus-rpms"
+      releasever: '8.8'
+
+  content_views:
+    # OSP
+    - name: osp16-2
+      repositories:
+        yum:
+          - name: "Advanced Virtualization for RHEL 8 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux Advanced Virtualization"
+          - name: "Fast Datapath for RHEL 8 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux Fast Datapath"
+          - name: "Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 RPMs"
+            product: "Red Hat Ansible Engine"
+          - name: "Red Hat Ceph Storage Tools 4 for RHEL 8 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - AppStream - Extended Update Support RPMs 8.4"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - BaseOS - Extended Update Support RPMs 8.4"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - High Availability - Extended Update Support RPMs 8.4"
+            product: "Red Hat Enterprise Linux High Availability for x86_64 - Extended Update Support"
+          - name: "Red Hat OpenStack Platform 16.2 for RHEL 8 x86_64 RPMs"
+            product: "Red Hat OpenStack"
+          - name: "Red Hat Satellite Tools 6.10 for RHEL 8 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux for x86_64"
+    - name: osp17-1
+      repositories:
+        yum:
+          - name: "Fast Datapath for RHEL 9 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux Fast Datapath"
+          - name: "Red Hat Ceph Storage Tools 6 for RHEL 9 x86_64 RPMs"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - AppStream - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - BaseOS - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - High Availability - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux High Availability for x86_64 - Extended Update Support"
+          - name: "Red Hat OpenStack Platform 17.1 for RHEL 9 x86_64 RPMs"
+            product: "Red Hat OpenStack"
+    # RHEL
+    - name: rhel9
+      repositories:
+        yum:
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - AppStream RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - BaseOS RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - AppStream - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - BaseOS - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 9 for x86_64 - High Availability - Extended Update Support RPMs 9.2"
+            product: "Red Hat Enterprise Linux High Availability for x86_64 - Extended Update Support"
+    - name: rhel8
+      repositories:
+        yum:
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8.8"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8.8"
+            product: "Red Hat Enterprise Linux for x86_64"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - AppStream - Extended Update Support RPMs 8.8"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - BaseOS - Extended Update Support RPMs 8.8"
+            product: "Red Hat Enterprise Linux for x86_64 - Extended Update Support"
+          - name: "Red Hat Enterprise Linux 8 for x86_64 - High Availability - Extended Update Support RPMs 8.8"
+            product: "Red Hat Enterprise Linux High Availability for x86_64 - Extended Update Support"
+...
+
+

@@ -1,0 +1,5 @@
+---
+# defaults file for gitlab
+
+git_fqdn: "{{ mgmt.git.hostname }}.{{ mgmt.cluster_name }}.{{ mgmt.domain }}"
+

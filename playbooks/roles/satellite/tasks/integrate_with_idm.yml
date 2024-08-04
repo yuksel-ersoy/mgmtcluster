@@ -1,0 +1,72 @@
+---
+- name: Add host to group idm
+  ansible.builtin.add_host:
+    name: "{{ idm1_hostname }}.{{ mgmt.domain }}"
+    ansible_user: "{{ mgmt.idm.user }}"
+    ansible_ssh_user: "{{ mgmt.idm.user }}"
+    groups: idm
+
+- name: Add host to group satellite
+  ansible.builtin.add_host:
+    name: "{{ satellite_fqdn }}"
+    ansible_user: "{{ satellite_admin_username }}"
+    ansible_ssh_user: "{{ satellite_admin_username }}"
+    groups: satellite
+
+- name: Add Satellite info to IDM
+  delegate_to: "{{ mgmt.idm.hostname }}.{{ mgmt.domain }}"
+  block:
+    - name: Add the host and generate a random password
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo {{ ipa_admin_pass }} | kinit -V admin &&
+        ipa host-add --random {{ satellite_fqdn }} --force
+      register: password
+      changed_when: true
+
+    - name: Debug return value
+      ansible.builtin.debug:
+        msg: "{{ password }}"
+
+    - name: Set random password
+      ansible.builtin.set_fact:
+        random_password: "{{ password.stdout_lines.5 | split(': ') | last}}"
+
+    - name: Debug random password
+      ansible.builtin.debug:
+        msg: "{{ random_password }}"
+
+    - name: Add  an HTTP service for Satellite
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo {{ ipa_admin_pass }} | kinit -V admin &&
+        ipa service-add HTTP/{{ satellite_fqdn }} --force
+      changed_when: true
+
+- name: Integrate Satellite
+  become: true
+  delegate_to: "{{ satellite_fqdn }}"
+  block:
+    - name: Install the IPA client
+      ansible.builtin.shell: |
+        set -o pipefail
+        satellite-maintain packages install -y ipa-client
+      changed_when: true
+    
+        #
+        # Change to point to IDM VIP instead of IDM 1
+        #
+    - name: Configure the IPA client
+      ansible.builtin.shell: |
+        ipa-client-install --password "{{ random_password }}" \
+        --mkhomedir --unattended --server {{ mgmt.idm.hostname }}.{{ mgmt.domain }} --domain {{ mgmt.domain }}
+      changed_when: true
+
+    - name: Set foreman-ipa-authentication to true
+      ansible.builtin.shell: |
+          satellite-installer --foreman-ipa-authentication=true
+      changed_when: true
+
+    - name: Restart the satellite
+      ansible.builtin.command: satellite-maintain service restart
+      changed_when: true

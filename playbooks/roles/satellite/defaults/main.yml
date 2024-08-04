@@ -1,0 +1,9 @@
+---
+# defaults file for satellite
+
+satellite_hostname: satellite
+
+apps_ns: mano-apps
+
+idm_integration: true
+

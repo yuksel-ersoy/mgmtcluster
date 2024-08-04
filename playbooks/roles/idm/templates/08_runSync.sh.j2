@@ -1,0 +1,5 @@
+echo "Run group sync"
+oc adm groups sync --sync-config={{ scripts_path }}/06_groupSync.yml --whitelist={{ scripts_path }}/07_whitelist.txt --confirm
+
+echo "Add admin role to group"
+oc adm policy add-cluster-role-to-group cluster-admin ocpadmins

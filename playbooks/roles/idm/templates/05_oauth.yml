@@ -1,0 +1,28 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: idm-ldap
+    mappingMethod: add
+    type: LDAP
+    ldap:
+      attributes:
+        id:
+        - dn
+        email:
+        - mail
+        name:
+        - cn
+        preferredUsername:
+        - uid
+      bindDN: "uid=ocp-bind-user,cn=users,cn=accounts,{{ mgmt.ldap_dc }}"
+      bindPassword:
+        name: "ldap-secret"
+      #ca: 
+      #  name: ca-config-map
+      insecure: true
+      #url: "ldaps://idm-service.mano-apps.svc.cluster.local/cn=accounts,{{ mgmt.ldap_dc }}?uid?sub?(memberOf=cn=ocpusers,cn=groups,cn=accounts,{{ mgmt.ldap_dc }})"
+      url: "ldap://{{ mgmt.idm.ip }}/cn=accounts,{{ mgmt.ldap_dc }}?uid"
+

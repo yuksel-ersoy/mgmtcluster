@@ -1,0 +1,53 @@
+- name: Create Ipa Groups
+  community.general.ipa_group:
+    name: "{{ item }}"
+    state: present
+    ipa_host: "{{ ansible_host }}"
+    ipa_user: admin
+    ipa_pass: "{{ ipa_admin_password }}"
+  loop: "{{ idm_groups }}"
+
+- name: Create Ipa Users
+  community.general.ipa_user:
+    name: "{{ item.name }}"
+    givenname: "{{ item.givenname }}"
+    sn: "{{ item.sn }}"
+    state: "{{ item.state }}"
+    password: "{{ item.password }}"
+    update_password: always
+    krbpasswordexpiration: '20600119235959' # Expire 2060
+    ipa_host: "{{ ansible_host }}"
+    ipa_user: admin
+    ipa_pass: "{{ ipa_admin_password }}"
+  loop: "{{ idm_users }}"
+
+- name: Create Ipa System Users (not humans)
+  community.general.ipa_user:
+    name: "{{ item.name }}"
+    givenname: "{{ item.givenname }}"
+    sn: "{{ item.sn }}"
+    state: "{{ item.state }}"
+    password: "{{ item.password }}"
+    update_password: always
+    krbpasswordexpiration: '20600119235959' # Expire 2060
+    ipa_host: "{{ ansible_host }}"
+    ipa_user: admin
+    ipa_pass: "{{ ipa_admin_password }}"
+  loop: "{{ idm_system_users }}"
+
+- name: Add users to OCP admin group
+  community.general.ipa_group:
+    name: ocpadmins
+    user: "{{ ocp_admin_users }}"
+    ipa_host: "{{ ansible_host }}"
+    ipa_user: admin
+    ipa_pass: "{{ ipa_admin_password }}"
+
+- name: Add users to RHCOS admin group
+  community.general.ipa_group:
+    name: rhcosadmins
+    user: "{{ rhcos_admin_users }}"
+    ipa_host: "{{ ansible_host }}"
+    ipa_user: admin
+    ipa_pass: "{{ ipa_admin_password }}"
+

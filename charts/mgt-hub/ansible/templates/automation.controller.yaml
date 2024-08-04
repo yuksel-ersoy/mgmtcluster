@@ -1,0 +1,24 @@
+apiVersion: automationcontroller.ansible.com/v1beta1
+kind: AutomationController
+metadata:
+  name: npss
+  namespace: ansible
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  create_preload_data: true
+  route_tls_termination_mechanism: Edge
+  ingress_type: Route
+  garbage_collect_secrets: false
+  loadbalancer_port: 80
+  image_pull_policy: IfNotPresent
+  projects_storage_size: 8Gi
+  task_privileged: false
+  projects_storage_access_mode: ReadWriteMany
+  postgres_storage_class: ocs-storagecluster-ceph-rbd
+  projects_persistence: false
+  replicas: 1
+  admin_user: admin
+  loadbalancer_protocol: http
+  nodeport_port: 30080
+

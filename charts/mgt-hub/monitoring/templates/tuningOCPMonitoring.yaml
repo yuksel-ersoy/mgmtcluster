@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    # Enable user workload montoring
+    enableUserWorkload: true
+    prometheusK8s:
+      remoteWrite:
+        - url: "http://prometheus-kafka-adapter.prom-kafka-adapter.svc.cluster.local:8080/receive"
+      # Keep data stored for 1 days
+      retention: 1d
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 20Gi
+    alertmanagerMain:
+      retention: 1d
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 20Gi
+
+
+

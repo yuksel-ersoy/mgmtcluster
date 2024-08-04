@@ -1,0 +1,4 @@
+---
+# vars file for satellite
+
+scripts_path: satellite_scripts
