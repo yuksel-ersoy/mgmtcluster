@@ -1,5 +1,0 @@
-apiVersion: v2
-name: perf-profile
-description: Performance profile to allocate kubelet resources
-type: application
-version: 0.1.0

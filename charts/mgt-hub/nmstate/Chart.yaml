@@ -1,5 +1,0 @@
-apiVersion: v2
-name: nmstate
-description: nmstate crds 
-type: application
-version: 0.1.0
