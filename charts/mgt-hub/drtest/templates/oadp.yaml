@@ -1,0 +1,45 @@
+#apiVersion: v1
+#data:
+#  cloud: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPXJtTVpnc29aSnRSUnBrUkNpcG55CmF3c19zZWNyZXRfYWNjZXNzX2tleT1EUEhOWUp0U0tidlQwL0xnNUhsVXljM2Zzb3ppdnVkcEl2alR5UXJVCg==
+#kind: Secret
+#metadata:
+#  name: cloud-credentials
+#  namespace: open-cluster-management-backup
+#type: Opaque
+---
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: oadp-test
+  namespace: open-cluster-management-backup
+spec:
+  backupLocations:
+    - velero:
+        config:
+          profile: default
+          region: us-east-1
+          s3ForcePathStyle: 'true'
+          s3Url: 'https://s3-openshift-storage.apps.virthub.npss.bos2.lab'
+          insecureSkipTLSVerify: "true"
+        credential:
+          key: cloud
+          name: cloud-credentials
+        default: true
+        objectStorage:
+          bucket: oadp-backup-2cefbe18-c3bd-4539-a997-ec0c3b026a85 
+          prefix: velero
+        provider: aws
+  configuration:
+    restic:
+      enable: true
+    velero:
+      defaultPlugins:
+        - openshift
+        - aws
+        - kubevirt
+  snapshotLocations:
+    - velero:
+        config:
+          profile: default
+          region: minio
+        provider: aws

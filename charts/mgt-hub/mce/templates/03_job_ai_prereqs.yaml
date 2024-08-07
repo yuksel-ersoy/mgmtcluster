@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  #annotations:
+  #  argocd.argoproj.io/sync-wave: "16"
+  name: mce-prereq-job
+  namespace: multicluster-engine
+spec:
+  template:
+    spec:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      serviceAccount: {{ .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      terminationGracePeriodSeconds: {{ .Values.jobTerminationGracePeriod }}
+      containers:
+      - image: {{ .Values.global.params.job_image }}
+        name: mce-prereq-job
+        resources: {}  
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "enable watch all ns"
+          oc patch provisioning provisioning-configuration --type merge \
+            -p '{"spec":{"watchAllNamespaces": true }}'
+
+          echo "copy pull secret CM to MCE namespace"
+          echo "extract pull secret"
+          oc -n openshift-config extract secret/pull-secret --confirm --to=/tmp/
+
+          # Remove credentials for cloud.openshift.com from pull-secret
+          # to avoid insight operator reporting errors in disconnected env
+          jq 'del(.auths|."cloud.openshift.com")' < /tmp/.dockerconfigjson > /tmp/.dockerconfigjson-upd
+
+          echo "create new pull secret"
+          oc -n multicluster-engine create secret generic assisted-deployment-pull-secret \
+            --type=kubernetes.io/dockerconfigjson \
+            --from-file=.dockerconfigjson=/tmp/.dockerconfigjson-upd
+
+          echo "Create mirror configmap"
+          echo "Extract Quay cert"
+          oc -n quay-enterprise extract configmap/kube-root-ca.crt --to=/tmp/
+
+          echo "Extract Temp config map"
+          oc -n multicluster-engine extract cm/temp --to=/tmp/
+
+          echo "Create mirror config map"
+          oc -n multicluster-engine create configmap mirror-registry-config-map \
+            --from-file=ca-bundle.crt=/tmp/ca.crt \
+            --from-file=registries.conf=/tmp/mirror-list
+
+          echo "All done! Hooray!"

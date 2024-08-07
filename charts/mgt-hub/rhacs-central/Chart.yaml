@@ -1,0 +1,5 @@
+apiVersion: v2
+name: rhacs-central
+description: Red Hat Advanced Cluster Security Central
+type: application
+version: 0.1.0

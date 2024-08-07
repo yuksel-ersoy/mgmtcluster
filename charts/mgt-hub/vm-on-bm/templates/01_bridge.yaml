@@ -1,0 +1,35 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: multus-interfaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  nodeSelector: 
+    node-role.kubernetes.io/worker: ''
+  desiredState:
+    interfaces:
+    - name: bond1.402
+      type: vlan
+      state: up
+      vlan:
+        base-iface: bond1
+        id: 42
+      ipv4:
+        enabled: false
+        dhcp: false
+      ipv6:
+        enabled: false
+        dhcp: false
+    - name: br-apps
+      type: linux-bridge
+      state: up
+      ipv4:
+        dhcp: false
+        enabled: false
+      bridge:
+        options:
+          stp:
+            enabled: false
+        port:
+          - name: bond1.402

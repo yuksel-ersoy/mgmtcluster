@@ -1,0 +1,28 @@
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay-registry
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  components:
+{{- range .Values.mgmt.quay.component }}
+    - kind: {{ .name }}
+      managed: {{ .managed | default "false" }}
+{{- if .overrides }}
+      overrides:
+        env:
+          - name: DEBUGLOG
+            value: "true"
+          - name: NO_PROXY
+            value: {{ .no_proxy }}
+          - name: HTTP_PROXY
+            value: {{ .http_proxy }}
+          - name: HTTPS_PROXY
+            value: {{ .https_proxy }}
+{{- end }}
+{{- end }}
+{{- if .Values.mgmt.quay.configBundleSecret.deploy }}
+  configBundleSecret: {{ .Values.mgmt.quay.configBundleSecret.name }}
+{{- end }}

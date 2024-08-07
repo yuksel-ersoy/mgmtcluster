@@ -1,0 +1,38 @@
+jobTerminationGracePeriod: 300
+
+serviceAccountName: mce-prereq-sa 
+rbac:
+  roles:
+    - name: mce-prereq
+      createRole: true
+      apiGroups:
+        - '""'
+        - 'metal3.io'
+      scope:
+        cluster: true
+      resources:
+        - namespace
+        - configmaps
+        - provisionings
+        - secrets
+      verbs:
+        - "get"
+        - "list"
+        - "patch"
+        - "update"
+        - "create"
+        - "edit"
+  roleBindings:
+    - name: mce-prereq-rolebinding
+      createBinding: true
+      scope:
+        cluster: true
+        namespace: ""
+      subjects:
+        kind: ServiceAccount
+        name: mce-prereq-sa
+        namespace: multicluster-engine
+        apiGroup: ""
+      roleRef:
+        kind: ClusterRole
+        name: mce-prereq

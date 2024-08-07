@@ -1,0 +1,44 @@
+apiVersion: {{ .Values.openshift_gitops_api_version }}
+kind: AppProject
+metadata:
+  name: cluster-app-project
+  namespace: {{ .Values.ztp_instance_ns }}
+spec:
+  clusterResourceWhitelist:
+  - group: cluster.open-cluster-management.io
+    kind: ManagedCluster
+  - group: ''
+    kind: Namespace
+  - group: 'hive.openshift.io'
+    kind: ClusterImageSet
+  destinations:
+  - namespace: '*'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Namespace
+  - group: ''
+    kind: Secret
+  - group: agent-install.openshift.io
+    kind: InfraEnv
+  - group: agent-install.openshift.io
+    kind: NMStateConfig
+  - group: extensions.hive.openshift.io
+    kind: AgentClusterInstall
+  - group: hive.openshift.io
+    kind: ClusterDeployment
+  - group: metal3.io
+    kind: BareMetalHost
+  - group: metal3.io
+    kind: HostFirmwareSettings
+  - group: agent.open-cluster-management.io
+    kind: KlusterletAddonConfig
+  - group: cluster.open-cluster-management.io
+    kind: ManagedCluster
+  - group: ran.openshift.io
+    kind: SiteConfig
+  sourceRepos:
+  - '*'
+

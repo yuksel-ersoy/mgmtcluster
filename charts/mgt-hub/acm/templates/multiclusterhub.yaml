@@ -1,0 +1,43 @@
+apiVersion: operator.open-cluster-management.io/v1
+kind: MultiClusterHub
+metadata:
+  name: multiclusterhub
+  namespace: open-cluster-management
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    {{- if kindIs "map" .Values.clusterGroup.subscriptions }}
+    installer.open-cluster-management.io/mce-subscription-spec: '{"installPlanApproval": "Manual", "source": "{{ default "redhat-operators" .Values.clusterGroup.subscriptions.acm.source }}" }'
+    {{- end }}
+spec:
+  availabilityConfig: High
+  disableHubSelfManagement: true
+  enableClusterBackup: false
+  ingress: {}
+  overrides:
+    components:
+    - enabled: true
+      name: app-lifecycle
+    - enabled: true
+      name: cluster-lifecycle
+    - enabled: true
+      name: cluster-permission
+    - enabled: true
+      name: console
+    - enabled: true
+      name: grc
+    - enabled: true
+      name: insights
+    - enabled: true
+      name: multicluster-engine
+    - enabled: true
+      name: multicluster-observability
+    - enabled: true
+      name: search
+    - enabled: true
+      name: submariner-addon
+    - enabled: true
+      name: volsync
+    - enabled: true
+      name: cluster-backup
+  separateCertificateManagement: false
+
